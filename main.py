@@ -1,3 +1,4 @@
+from unicodedata import name
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
@@ -8,13 +9,20 @@ from sqlalchemy.orm import Session
 engine = create_engine("sqlite:///todooo.db")
 Base = declarative_base()
 
-# creating the database model
+# creating the database model for book
 class Book(Base):
   __tablename__ = 'books'
   id = Column(Integer, primary_key=True)
   name = Column(String(50))
   author = Column(String(50))
   price = Column(Integer)
+
+# db model for Score
+class TypingScore(Base):
+  __tablename__ = 'typingScore'
+  id = Column(Integer, primary_key=True)
+  name = Column(String(50))
+  score = Column(Integer)
 
 
 
@@ -29,6 +37,11 @@ class Library2(BaseModel):
   name:Optional[str] = None
   author:Optional[str] = None
   price:Optional[float] = None
+
+# Pydantic model for scores
+class Score(BaseModel):
+  name:str
+  score:int
   
 # Initialize the database
 Base.metadata.create_all(engine)
@@ -125,3 +138,34 @@ def deleteBooks(id:int):
   session.commit()
   session.close()
   return {"success":True}
+
+@app.get("/leaderboard")
+def getLeaderboard():
+  session = Session(bind=engine, expire_on_commit=False)
+  scores = session.query(TypingScore).all()
+  session.close()
+  return scores
+
+@app.post("/sendscore")
+def sendScore(score:Score):
+  session = Session(bind=engine, expire_on_commit=False)
+  # checking if name already exists
+  v = session.query(TypingScore).filter(TypingScore.name == score.name).first()
+  if v:
+    v.score = max(v.score, score.score)
+  else:
+    tscore = TypingScore(name=score.name, score=score.score)
+    session.add(tscore)
+  # saving score
+  session.commit()
+  session.close()
+  return {"success":True}
+
+@app.get("/namescore/{name}")
+def getScoreByName(name:str):
+  session = Session(bind=engine, expire_on_commit=False)
+  v = session.query(TypingScore).filter(TypingScore.name == name).first()
+  if v:
+    return {"success":True,"data":v}
+  else:
+    return {"success":False}
