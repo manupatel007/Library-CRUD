@@ -26,6 +26,14 @@ class TypingScore(Base):
   name = Column(String(50))
   score = Column(Integer)
 
+# latest db model for score
+class TypingScoreNew(Base):
+  __tablename__ = 'typingScorenew'
+  id = Column(Integer, primary_key=True)
+  name = Column(String(50))
+  score = Column(Integer)
+  power = Column(String(50))
+
 
 
 # creating the pydentic model
@@ -44,6 +52,11 @@ class Library2(BaseModel):
 class Score(BaseModel):
   name:str
   score:int
+
+class Score2(BaseModel):
+  name:str
+  score:int
+  power:str
   
 # Initialize the database
 Base.metadata.create_all(engine)
@@ -154,19 +167,19 @@ def deleteBooks(id:int):
 @app.get("/leaderboard")
 def getLeaderboard():
   session = Session(bind=engine, expire_on_commit=False)
-  scores = session.query(TypingScore).all()
+  scores = session.query(TypingScoreNew).all()
   session.close()
   return scores
 
 @app.post("/sendscore")
-def sendScore(score:Score):
+def sendScore(score:Score2):
   session = Session(bind=engine, expire_on_commit=False)
   # checking if name already exists
-  v = session.query(TypingScore).filter(TypingScore.name == score.name).first()
+  v = session.query(TypingScoreNew).filter(TypingScoreNew.name == score.name).first()
   if v:
     v.score = max(v.score, score.score)
   else:
-    tscore = TypingScore(name=score.name, score=score.score)
+    tscore = TypingScoreNew(name=score.name, score=score.score, power=score.power)
     session.add(tscore)
   # saving score
   session.commit()
@@ -176,7 +189,7 @@ def sendScore(score:Score):
 @app.get("/namescore/{name}")
 def getScoreByName(name:str):
   session = Session(bind=engine, expire_on_commit=False)
-  v = session.query(TypingScore).filter(TypingScore.name == name).first()
+  v = session.query(TypingScoreNew).filter(TypingScoreNew.name == name).first()
   if v:
     return {"success":True,"data":v}
   else:
