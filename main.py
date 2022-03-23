@@ -194,3 +194,12 @@ def getScoreByName(name:str):
     return {"success":True,"data":v}
   else:
     return {"success":False}
+
+@app.get("/deletescore")
+def deleteScoreById(id:int):
+  session = Session(bind=engine, expire_on_commit=False)
+  score = session.query(TypingScoreNew).get(id)
+  session.delete(score)
+  session.commit()
+  session.close()
+  return {"success":True}
