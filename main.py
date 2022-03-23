@@ -8,16 +8,6 @@ from sqlalchemy.orm import Session
 
 from fastapi.middleware.cors import CORSMiddleware
 
-origins = ["*"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 engine = create_engine("sqlite:///todooo.db")
 Base = declarative_base()
 
@@ -59,6 +49,16 @@ class Score(BaseModel):
 Base.metadata.create_all(engine)
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def getBooks():
