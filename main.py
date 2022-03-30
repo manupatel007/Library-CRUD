@@ -202,4 +202,4 @@ def deleteScoreById(id:int):
   session.delete(score)
   session.commit()
   session.close()
-  return {"success":True}
+  return {"success":True, "message":"done successfully"}
